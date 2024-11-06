@@ -58,7 +58,7 @@ func (h *TestsHandler) GetUnpassedTests(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Неуказан id пользователя", http.StatusBadRequest)
 		return
 	}
-	if err := h.DB.Model(&models.Tests{}).
+	if err := h.DB.Model(&models.Tests{}).Preload("Questions.Answers").
 		Where("NOT EXISTS (SELECT 1 FROM test_to_users tu WHERE tu.test_id = tests.id AND tu.user_id = ? AND tu.is_passed = true)", userId).Find(&unpassedTests).Error; err != nil {
 		http.Error(w, "Ошибка получения непройденных тестов", http.StatusBadRequest)
 	} else {
@@ -110,6 +110,10 @@ func (h *TestsHandler) AddedUserTest(w http.ResponseWriter, r *http.Request) {
 	if err := h.DB.Create(&addedTest).Error; err != nil {
 		http.Error(w, "Ошибка добавления теста в список тестов пользователя"+err.Error(), http.StatusBadRequest)
 	}
+	response := map[string]interface{}{
+		"status": "Тест добавлен к пользователю",
+		"id":     addedTest.TestId,
+	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(addedTest)
+	json.NewEncoder(w).Encode(response)
 }
