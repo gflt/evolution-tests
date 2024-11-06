@@ -6,7 +6,7 @@
 Сервер запускает на 8000 порту
 
 Описание api эндпоинтов
-**/createuser Methods("POST")**
+<u>/createuser Methods("POST")</u>
 Создание пользователя, на вход принимает raw body, например:
 {
     "Nickname": "testUser123",
