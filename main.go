@@ -8,13 +8,32 @@ import (
 	"testproj/models"
 	"testproj/routes"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+var (
+	userRequests = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "user_requests_total",
+			Help: "Total number of requests to user handler",
+		},
+		[]string{"method"},
+	)
+
+	testsRequests = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "tests_requests_total",
+			Help: "Total number of requests to tests handler",
+		},
+		[]string{"method"},
+	)
+)
+
 func main() {
 	// Подключение к базе данных
-	dsn := "host=localhost port=5433 user=postgres dbname=testproj password=postgres sslmode=disable"
+	dsn := "host=postgres port=5433 user=postgres dbname=testproj password=postgres sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true})
 	if err != nil {
 		log.Fatalf("Ошибка при подключении к базе данных: %v", err)
@@ -46,11 +65,27 @@ func main() {
 		log.Fatalf("failed to add foreign key for test_to_users: %v", err)
 	}
 
+	prometheus.MustRegister(userRequests)
+	prometheus.MustRegister(testsRequests)
+
+	userHandler := &handlers.UserHandler{
+		DB:           db,
+		UserRequests: userRequests,
+	}
+	testsHandler := &handlers.TestsHandler{
+		DB:            db,
+		TestsRequests: testsRequests}
+
 	// Создаем новый маршрутизатор
-	userHandler := &handlers.UserHandler{DB: db}
-	testsHandler := &handlers.TestsHandler{DB: db}
+	// userHandler := &handlers.UserHandler{DB: db}
+	// testsHandler := &handlers.TestsHandler{DB: db}
+	// userHandler := &handlers.UserHandler{DB: db}
+	// testsHandler := &handlers.TestsHandler{DB: db}
 	// Определяем маршрут для создания пользователя
 	router := routes.InitializeRoutes(userHandler, testsHandler)
+
+	// http.Handle("/metrics", promhttp.Handler())
+
 	// Запуск HTTP-сервера
 	log.Println("Сервер запущен на :8000")
 	http.ListenAndServe(":8000", router)

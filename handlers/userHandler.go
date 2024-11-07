@@ -6,14 +6,18 @@ import (
 	"testproj/models"
 
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/gorm"
 )
 
 type UserHandler struct {
-	DB *gorm.DB
+	DB           *gorm.DB
+	UserRequests *prometheus.CounterVec
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	h.UserRequests.WithLabelValues("createUser").Inc()
+
 	// Декодирование JSON из тела запроса
 	var user models.Users
 
@@ -33,12 +37,12 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка создания пользователя: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }
 
 func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	h.UserRequests.WithLabelValues("updatePassword").Inc()
 	var userChangePassword models.UpdatePassword
 
 	// Декодируем тело запроса
@@ -73,6 +77,7 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) AuthorizeUser(w http.ResponseWriter, r *http.Request) {
+	h.UserRequests.WithLabelValues("authorize").Inc()
 	var Authorize models.Authorize
 
 	if err := json.NewDecoder(r.Body).Decode(&Authorize); err != nil {

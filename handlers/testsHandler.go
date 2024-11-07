@@ -6,15 +6,18 @@ import (
 	"testproj/models"
 
 	"github.com/google/uuid"
+	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/gorm"
 )
 
 type TestsHandler struct {
-	DB *gorm.DB
+	DB            *gorm.DB
+	TestsRequests *prometheus.CounterVec
 }
 
 // GET
 func (h *TestsHandler) GetListTests(w http.ResponseWriter, r *http.Request) {
+	h.TestsRequests.WithLabelValues("getListTests").Inc()
 	var tests []models.Tests
 	if err := h.DB.Find(&tests).Error; err != nil {
 		http.Error(w, "Ошибка получения списка тестов", http.StatusInternalServerError)
@@ -35,6 +38,7 @@ func (h *TestsHandler) GetListTests(w http.ResponseWriter, r *http.Request) {
 // GET
 // ?{id=}
 func (h *TestsHandler) GetTest(w http.ResponseWriter, r *http.Request) {
+	h.TestsRequests.WithLabelValues("getTest").Inc()
 	getTestId := r.URL.Query().Get("id")
 	var tests []models.Tests
 	if err := h.DB.Preload("Questions.Answers").Find(&tests, "id = ?", getTestId).Error; err != nil {
@@ -51,6 +55,7 @@ func (h *TestsHandler) GetTest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TestsHandler) GetUnpassedTests(w http.ResponseWriter, r *http.Request) {
+	h.TestsRequests.WithLabelValues("getUnpassedTests").Inc()
 	userId := r.URL.Query().Get("userId")
 	var unpassedTests []models.Tests
 
@@ -71,6 +76,7 @@ func (h *TestsHandler) GetUnpassedTests(w http.ResponseWriter, r *http.Request) 
 // GET
 // ?{id=}
 func (h *TestsHandler) GetMyTests(w http.ResponseWriter, r *http.Request) {
+	h.TestsRequests.WithLabelValues("getMyTests").Inc()
 	userId := r.URL.Query().Get("userId")
 	var results []map[string]interface{}
 
@@ -95,6 +101,7 @@ func (h *TestsHandler) GetMyTests(w http.ResponseWriter, r *http.Request) {
 
 // POST
 func (h *TestsHandler) AddedUserTest(w http.ResponseWriter, r *http.Request) {
+	h.TestsRequests.WithLabelValues("addedUserTest").Inc()
 	var addedTest models.TestToUsers
 
 	if err := json.NewDecoder(r.Body).Decode(&addedTest); err != nil {

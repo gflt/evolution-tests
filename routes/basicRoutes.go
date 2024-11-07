@@ -4,6 +4,7 @@ import (
 	"testproj/handlers"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func InitializeRoutes(userHandler *handlers.UserHandler, testsHandler *handlers.TestsHandler) *mux.Router {
@@ -17,5 +18,6 @@ func InitializeRoutes(userHandler *handlers.UserHandler, testsHandler *handlers.
 	router.HandleFunc("/unpassedtest", testsHandler.GetUnpassedTests).Methods("GET")
 	router.HandleFunc("/getmytests", testsHandler.GetMyTests).Methods("GET")
 	router.HandleFunc("/addedtesttouser", testsHandler.AddedUserTest).Methods("POST")
+	router.Handle("/metrics", promhttp.Handler()).Methods("GET") 
 	return router
 }

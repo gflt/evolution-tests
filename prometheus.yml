@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s  # Интервал сбора метрик
+
+scrape_configs:
+  - job_name: 'evouliton-test-back'
+    static_configs:
+      - targets: ['evouliton-test-back:8000']

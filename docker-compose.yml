@@ -9,6 +9,8 @@ services:
       - "8000:8000"
     environment:
       - PORT=8000
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:15
@@ -16,7 +18,32 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: testproj
+      PGPORT: 5433
     ports:
-      - "5433:5432"
+      - "5433:5433"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prom_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    depends_on:
+      - evouliton-test-back
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  prom_data:
