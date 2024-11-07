@@ -33,7 +33,7 @@ var (
 
 func main() {
 	// Подключение к базе данных
-	dsn := "host=postgres port=5433 user=postgres dbname=testproj password=postgres sslmode=disable"
+	dsn := "host=localhost port=5433 user=postgres dbname=testproj password=postgres sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true})
 	if err != nil {
 		log.Fatalf("Ошибка при подключении к базе данных: %v", err)

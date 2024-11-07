@@ -57,13 +57,13 @@ func (h *TestsHandler) GetTest(w http.ResponseWriter, r *http.Request) {
 func (h *TestsHandler) GetUnpassedTests(w http.ResponseWriter, r *http.Request) {
 	h.TestsRequests.WithLabelValues("getUnpassedTests").Inc()
 	userId := r.URL.Query().Get("userId")
-	var unpassedTests []models.Tests
+	var unpassedTests []models.Result_Tests
 
 	if userId == "" {
 		http.Error(w, "Неуказан id пользователя", http.StatusBadRequest)
 		return
 	}
-	if err := h.DB.Model(&models.Tests{}).Preload("Questions.Answers").
+	if err := h.DB.Model(&models.Tests{}).
 		Where("NOT EXISTS (SELECT 1 FROM test_to_users tu WHERE tu.test_id = tests.id AND tu.user_id = ? AND tu.is_passed = true)", userId).Find(&unpassedTests).Error; err != nil {
 		http.Error(w, "Ошибка получения непройденных тестов", http.StatusBadRequest)
 	} else {
@@ -85,7 +85,7 @@ func (h *TestsHandler) GetMyTests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err := h.DB.Table("test_to_users tu").
-		Select("tu.test_id AS test_id, t.name AS test_name, COALESCE(tu.is_passed, false) AS is_passed").
+		Select(`tu.test_id AS "Id", t.name AS "Name", COALESCE(tu.is_passed, false) AS "IsPassed"`).
 		Joins("LEFT JOIN tests t ON tu.test_id = t.id").
 		Where("tu.user_id = ?", userId).
 		Scan(&results).Error

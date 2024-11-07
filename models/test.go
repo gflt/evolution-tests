@@ -9,4 +9,7 @@ type Tests struct {
 	Name      string     `gorm:"type:text;not null"`
 	Questions []Question `gorm:"foreignKey:tests_id"`
 }
- 
+type Result_Tests struct {
+	Id   uuid.UUID `gorm:"type:uuid;primaryKey;not null"`
+	Name string    `gorm:"type:text;not null"`
+}

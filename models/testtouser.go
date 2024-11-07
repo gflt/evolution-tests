@@ -11,3 +11,9 @@ type TestToUsers struct {
 	Test     Tests     `gorm:"foreignKey:TestId"`
 	IsPassed bool      `gorm:"default:false"`
 }
+
+type TestResult struct {
+	TestId   uuid.UUID    `gorm:"type:uuid;not null;index"`
+	Test     Result_Tests `gorm:"foreignKey:TestId"`
+	IsPassed bool         `gorm:"default:false"`
+}
